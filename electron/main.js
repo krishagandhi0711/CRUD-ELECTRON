@@ -6,9 +6,11 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 
 // Determine if we're in development or production
 const isDev = process.env.VITE_DEV_SERVER_URL !== undefined;
@@ -16,6 +18,12 @@ const isDev = process.env.VITE_DEV_SERVER_URL !== undefined;
 // In dev: Vite runs a server (http://localhost:5173)
 // In prod: We load static HTML files
 
+const notesFile=path.join(app.getPath("userData"),"notes.json")
+
+// ensure notes.js exists
+if(!fs.existsSync(notesFile)){
+  fs.writeFileSync(notesFile,JSON.stringify([]));
+}
 
 process.env.APP_ROOT = path.join(__dirname, '..');
 
@@ -50,6 +58,19 @@ function createWindow() {
     },
   });
 
+
+  win.webContents.on("did-finish-load",()=>{
+    // read saved notes
+    let savedNotes=JSON.parse(fs.readFileSync(notesFile));
+
+    // send to renderer
+    win.webContents.send("load-notes",savedNotes);
+  })
+  // when the ui is fully loaded
+  // --> "did-finish-load" event fires
+  // we read notes.json 
+  // send all notes to react using "load-notes"
+
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
     win.webContents.openDevTools();
@@ -59,6 +80,20 @@ function createWindow() {
 }
 
 // ✅ IPC Handler - Listen for messages from React
+ipcMain.on("save-note",(event,note)=>{
+    const notes=JSON.parse(fs.readFileSync(notesFile));
+    notes.push(note);
+    fs.writeFileSync(notesFile,JSON.stringify(notes));
+
+    // send updated notes back to renderer
+    event.sender.send("load-notes", notes);
+  })
+
+ipcMain.on("update-notes",(event,updatedNotes)=>{
+  fs.writeFileSync(notesFile,JSON.stringify(updatedNotes));
+  event.sender.send("load-notes",updatedNotes);
+});
+
 ipcMain.on('say-hello', (event, data) => {
   console.log('📩 [Main] Message from React:', data);
   // Send response back to renderer
