@@ -1,20 +1,43 @@
-// electron/preload.js
-import { ipcRenderer, contextBridge } from 'electron';
+// Use CommonJS syntax (require) not ES6 (import)
+const { contextBridge, ipcRenderer } = require('electron');
+// STEP 1: Import Electron modules
+// - contextBridge: Safely exposes APIs to renderer
+// - ipcRenderer: Communicates with main process
 
-// --------- Expose some API to the Renderer process ---------
+
+console.log('🔧 Preload script is running!');
+
+// Expose IPC methods to the renderer process (React)
 contextBridge.exposeInMainWorld('ipcRenderer', {
-  on(channel, listener) {
-    return ipcRenderer.on(channel, (event, ...args) => listener(event, ...args));
+  send: (channel, data) => {
+    console.log('📤 [Preload] Sending:', channel, data);
+    const validChannels = ['say-hello'];
+    if (validChannels.includes(channel)) {
+      ipcRenderer.send(channel, data);
+    } else {
+      console.error('❌ [Preload] Invalid channel:', channel);
+    }
   },
-  off(channel, listener) {
-    return ipcRenderer.removeListener(channel, listener);
+  
+  on: (channel, callback) => {
+    console.log('👂 [Preload] Setting up listener for:', channel);
+    const validChannels = ['say-hello', 'main-process-message'];
+    if (validChannels.includes(channel)) {
+      ipcRenderer.on(channel, (event, ...args) => {
+        console.log('📨 [Preload] Received:', channel, args);
+        callback(...args);
+      });
+    } else {
+      console.error('❌ [Preload] Invalid channel:', channel);
+    }
   },
-  send(channel, ...args) {
-    return ipcRenderer.send(channel, ...args);
-  },
-  invoke(channel, ...args) {
-    return ipcRenderer.invoke(channel, ...args);
-  },
-
-  // You can expose other APIs you need here
+  
+  off: (channel) => {
+    const validChannels = ['say-hello', 'main-process-message'];
+    if (validChannels.includes(channel)) {
+      ipcRenderer.removeAllListeners(channel);
+    }
+  }
 });
+
+console.log('✅ Preload script finished - window.ipcRenderer is ready');
