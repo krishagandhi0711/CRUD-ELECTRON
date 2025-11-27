@@ -43,7 +43,7 @@ function createWindow() {
   win = new BrowserWindow({
     width: 800,
     height: 600,
-    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+     icon: path.join(app.getAppPath(), "assets", process.platform === "win32" ? "icon.ico" : "icon.icns"),
     webPreferences: {
       preload: preloadPath,
       contextIsolation: true,

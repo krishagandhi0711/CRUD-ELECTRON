@@ -4,11 +4,20 @@
   "version": "1.0.0",
   "type": "module",
   "author": "Krisha Gandhi",
-  "description": "My reusable Electron + Vite + TypeScript template",
+  "description": "My reusable Electron + Vite + React template",
+  "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
-    "build":"vite build && electron-builder",
-    "preview": "vite preview"
+    "start": "electron .",
+    "electron:dev": "vite && electron .",
+    "build": "vite build && electron-builder",
+    "preview": "vite preview",
+    "package-win": "electron-builder --windows",
+    "package-mac": "electron-builder --mac"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "electron": "^30.0.1",
@@ -17,9 +26,25 @@
     "vite-plugin-electron": "^0.28.6",
     "vite-plugin-electron-renderer": "^0.14.5"
   },
-  "main": "dist-electron/main.js",
-  "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+  "build": {
+    "appId": "com.krishagandhi.mynotes",
+    "productName": "MyNotesApp",
+    "directories": {
+      "buildResources": "assets",
+      "output": "dist"
+    },
+    "files": [
+      "dist-electron/**/*",
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns"
+    }
   }
 }
