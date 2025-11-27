@@ -11,14 +11,21 @@ const App=()=>{
   // null means no note is being edited.
   // When user clicks Edit, we set editIndex to that note’s index.
   const [selectedCategory,setSelectedCategory]=useState("General");
+  const [filterCategory,setFilterCategory]=useState("All Notes");
+  const [searchText, setSearchText]=useState("");
+  const [sortOrder,setSortOrder]=useState("newest");
+  const [deadline,setDeadline]=useState(null);
+  const [notification, setNotification] = useState(null);
+
 
   const addNote=()=>{
     if (note.trim()==="") return;
     const newNote={
       text:note,
-      createdAt:new Date().toLocaleDateString(),
+      createdAt:new Date().toISOString(),
       // readable timestamp;
-      category:selectedCategory
+      category:selectedCategory,
+      deadline:deadline? new Date(deadline).toISOString():null
     };
     setNotes([...notes,newNote]);
     // Copy all old notes in the new array
@@ -50,14 +57,43 @@ const App=()=>{
 
   const editNote=(index)=>{
     setEditIndex(index);
+    setNote(notes[index].text);
+    setDeadline(notes[index].deadline? notes[index].deadline.slice(0,16):"");
   }
 
   const saveEdit=()=>{
-    window.ipcRenderer.send("update-notes",notes);
+    const updatedNotes=[...notes];
+
+    updatedNotes[editIndex]={
+      ...updatedNotes[editIndex],
+      text:note,
+      deadline: deadline? new Date(deadline).toISOString():null
+    };
+    setNotes(updatedNotes);
+    window.ipcRenderer.send("update-notes",updatedNotes);
     setEditIndex(null);
     setNote("");
+    setDeadline(null);
   }
 
+  const displayedNotes=notes.filter(note=>{
+    if(filterCategory!=="All Notes" && note.category!==filterCategory){
+      return false;
+    };
+    if(!note.text.toLowerCase().includes(searchText.toLowerCase())){
+      return false;
+    };
+    return true;
+  });
+
+  displayedNotes.sort((a,b)=>{
+    const dateA=new Date(a.createdAt);
+    const dateB=new Date(b.createdAt);
+
+    if (sortOrder=="newest") return dateB-dateA;
+    else return dateA-dateB;
+  })
+      
   // Runs one time only when React UI loads.
   useEffect(()=>{
     if(!window.ipcRenderer) return;
@@ -66,12 +102,45 @@ const App=()=>{
       setNotes(loadedNotes);
     };
     window.ipcRenderer.on("load-notes",handleLoadNotes);
+
+  const timer = setInterval(() => {
+  const now = new Date();
+  setNotes((prevNotes) => {
+    return prevNotes.map((n) => {
+      if (n.deadline) {
+        const noteDeadline = new Date(n.deadline);
+        if (noteDeadline <= now && !n.notified) {
+          setNotification("Deadline reached for note: " + n.text);
+          return { ...n, notified: true };
+        }
+      }
+      return n; 
+    });
+  });
+}, 1000);
     return()=>{
-      window.ipcRenderer.off("load-notes");
-    }
-  })
+      window.ipcRenderer.off("load-notes",handleLoadNotes);
+      clearInterval(timer);
+    };
+  },[notes]);
+
   return(
-    <div className="container">
+    <div className="layout">
+      <div className="sidebar">
+        <h2>Categories</h2>
+        <ul>
+          {["All Notes","General","Work","Ideas","Personal"].map((cat)=>(
+            <li key={cat}
+            onClick={()=>setFilterCategory(cat)}
+            className={filterCategory===cat?"active-category":""}
+            >
+              {cat}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+    <div className="container main-area">
       <h1 className="title">My Notes</h1>
     <div>
       <h2>ADD NOTE</h2>
@@ -99,19 +168,45 @@ const App=()=>{
         </select>
         <br/><br/>
 
+        <input type="datetime-local" value={deadline}
+        onChange={(e)=>setDeadline(e.target.value)}/>
+
       {/* onChange controls what happens when someone types in input box
       e=event object(it contains information about the input box event)*/}
       <button onClick={editIndex!==null?saveEdit:addNote} className="add-btn">
         {editIndex!==null?"Save Edit":"Add Note"}</button>
+
+        {notification && (
+          <div className="notification">
+            {notification}
+            <button onClick={()=>setNotification(null)} className="close-notif">X</button>
+            </div>
+        )}
+
       <h3>Notes:</h3>
 
-      <ul className="notes-list">
-        {notes.map((n,i)=>(
+      <input type="text" className="search-box" placeholder="Search notes..." 
+      value={searchText} onChange={(e)=>setSearchText(e.target.value)}/>
 
-          <li key={i} className="note-item">
+      <select value={sortOrder}
+      onChange={(e)=>setSortOrder(e.target.value)}
+      className="sort-dropdown"
+      >
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+      </select>
+
+      <ul className="notes-list">
+        {displayedNotes.map((n,i)=>(
+           <li key={i} className="note-item">
             <div className="note-text">{n.text}</div>
             <div className="note-meta">
               <div className="note-date">{n.createdAt}</div>
+              {n.deadline && (
+                <div className="note-deadline">
+                  <b>Deadline:</b> {new Date(n.deadline).toLocaleString()}
+                  </div>
+              )}
               <div className="category-tag"><b>Category:</b>{n.category}</div>
             </div>
             
@@ -124,6 +219,7 @@ const App=()=>{
       </ul>
     </div>
     </div>
+        </div>
   );
 };
 

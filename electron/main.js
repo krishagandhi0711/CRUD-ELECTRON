@@ -4,9 +4,9 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 // - BrowserWindow: Creates windows
 // - ipcMain: Listens for messages from renderer
 
-import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from "fs";
+import { readNotes,writeNotes } from './filehandler.js';
+import path from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,13 +17,6 @@ const isDev = process.env.VITE_DEV_SERVER_URL !== undefined;
 // STEP 2: Detect if we're in development or production
 // In dev: Vite runs a server (http://localhost:5173)
 // In prod: We load static HTML files
-
-const notesFile=path.join(app.getPath("userData"),"notes.json")
-
-// ensure notes.js exists
-if(!fs.existsSync(notesFile)){
-  fs.writeFileSync(notesFile,JSON.stringify([]));
-}
 
 process.env.APP_ROOT = path.join(__dirname, '..');
 
@@ -61,7 +54,7 @@ function createWindow() {
 
   win.webContents.on("did-finish-load",()=>{
     // read saved notes
-    let savedNotes=JSON.parse(fs.readFileSync(notesFile));
+    let savedNotes=readNotes();
 
     // send to renderer
     win.webContents.send("load-notes",savedNotes);
@@ -81,16 +74,15 @@ function createWindow() {
 
 // ✅ IPC Handler - Listen for messages from React
 ipcMain.on("save-note",(event,note)=>{
-    const notes=JSON.parse(fs.readFileSync(notesFile));
+    const notes=readNotes();
     notes.push(note);
-    fs.writeFileSync(notesFile,JSON.stringify(notes));
-
+    writeNotes(notes);
     // send updated notes back to renderer
     event.sender.send("load-notes", notes);
   })
 
 ipcMain.on("update-notes",(event,updatedNotes)=>{
-  fs.writeFileSync(notesFile,JSON.stringify(updatedNotes));
+  writeNotes(updatedNotes);
   event.sender.send("load-notes",updatedNotes);
 });
 

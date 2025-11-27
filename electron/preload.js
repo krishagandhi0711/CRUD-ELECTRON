@@ -3,20 +3,24 @@ const { contextBridge, ipcRenderer } = require('electron');
 // - contextBridge: Safely exposes APIs to renderer
 // - ipcRenderer: Communicates with main process
 
+const validChannels=[
+  "save-note",
+  "update-notes",
+  "load-notes",
+  "say-hello"
+];
+
 contextBridge.exposeInMainWorld('ipcRenderer', {
   send: (channel, data) => {
-    const validChannels = ['say-hello','save-note','update-notes'];
     if (validChannels.includes(channel)) {
       ipcRenderer.send(channel, data);
     }
   },
   
   on: (channel, callback) => {
-    const validChannels = ['say-hello', 'main-process-message','load-notes'];
+  
     if (validChannels.includes(channel)) {
-      ipcRenderer.on(channel, (event, ...args) => {
-        callback(...args);
-      });
+      ipcRenderer.on(channel, (event, ...args) => callback(...args));
     }
   },
   

@@ -1,19 +1,16 @@
-/* Whole app layout */
 .container {
-  max-width: 600px;
-  margin: 30px auto;
+  width: 100%;
+  margin: 0;
   padding: 20px;
   font-family: Arial, sans-serif;
 }
 
-/* Heading */
 .title {
   text-align: center;
   font-size: 28px;
   margin-bottom: 20px;
 }
 
-/* Input area styling */
 .input-area {
   display: flex;
   gap: 10px;
@@ -46,7 +43,6 @@
   background-color: #45a049;
 }
 
-/* Notes list */
 .notes-list {
   list-style: none;
   padding: 0;
@@ -54,34 +50,35 @@
 
 .note-item {
   background: #fff;
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 12px;
+  padding: 18px;
+  border-radius: 12px;
+  margin-bottom: 15px;
   border: 1px solid #ddd;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
-/* Note text */
 .note-text {
-  font-size: 16px;
-  margin-bottom: 8px;
+  font-size: 17px;
+  margin-bottom: 10px;
 }
 
-/* Timestamp + category */
 .note-meta {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 13px;
   margin-bottom: 10px;
 }
 
 .category-tag {
-  background: #e0e0ff;
-  padding: 2px 6px;
+  background: #eef2ff;
+  color: #4f46e5;
+  padding: 3px 8px;
   border-radius: 6px;
+  font-size: 12px;
+  border: 1px solid #c7d2fe;
+  font-weight: 500;
 }
 
-/* Edit/Delete buttons */
 .note-actions {
   display: flex;
   gap: 10px;
@@ -102,4 +99,141 @@
 .delete-btn {
   background: #f44336;
   color: white;
+}
+
+.active-category {
+  font-weight: bold;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.search-box {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.sort-dropdown {
+  padding: 8px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.layout {
+  display: flex;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 240px;
+  background: #f8f9ff;
+  padding: 20px;
+  border-right: 1px solid #e5e7eb;
+  box-shadow: 2px 0 6px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+}
+
+.sidebar h2 {
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: #1e3a8a;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  flex-grow: 1;
+}
+
+.sidebar li {
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  color: #374151;
+  transition: 0.2s ease;
+}
+
+.sidebar li:hover {
+  background: #e0e7ff;
+}
+
+.sidebar li.active-category {
+  background: #2563eb;
+  color: white;
+  font-weight: bold;
+}
+
+.main-area {
+  flex: 1;
+  padding: 30px 40px;
+  overflow-y: auto;
+}
+
+.category-General { background: #dbeafe; color: #1e40af; }
+.category-Work { background: #fee2e2; color: #b91c1c; }
+.category-Ideas { background: #fef9c3; color: #ca8a04; }
+.category-Personal { background: #fce7f3; color: #be185d; }
+
+.note-deadline {
+  background: #fff4e5;
+  color: #b45309;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  border: 1px solid #fcd34d;
+  font-weight: 500;
+  margin-right: 10px;
+}
+
+input[type="datetime-local"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+}
+
+input[type="datetime-local"]:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 5px rgba(37, 99, 235, 0.3);
+}
+
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #2563eb;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-width: 250px;
+}
+
+.notification .close-notif {
+  background: transparent;
+  border: none;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 10px;
 }
